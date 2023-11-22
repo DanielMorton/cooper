@@ -20,17 +20,13 @@ pub(super) fn make_date_range(input_files: &[PathBuf]) -> DataFrame {
     let input_dates = input_files
         .iter()
         .filter_map(|f| {
-            f.file_name()
-                .and_then(|n| n.to_str())
-                .and_then(|n| {
-                    let mut split = n.split('_');
-                    split.next().map(|s| {
-                        match s.parse::<u32>() {
-                            Ok(_) => s,
-                            Err(_) => split.next().unwrap()
-                        }
-                    })
+            f.file_name().and_then(|n| n.to_str()).and_then(|n| {
+                let mut split = n.split('_');
+                split.next().map(|s| match s.parse::<u32>() {
+                    Ok(_) => s,
+                    Err(_) => split.next().unwrap(),
                 })
+            })
         })
         .collect::<Vec<_>>();
     let format = match format_description::parse("[year][month][day]") {
@@ -58,13 +54,13 @@ pub(super) fn make_date_range(input_files: &[PathBuf]) -> DataFrame {
     let mut channel_vec = Vec::with_capacity(date.len());
     for _ in 0..date.len() / 4 {
         time_vec.push("AM");
-        channel_vec.push(1u32);
+        channel_vec.push(1u8);
         time_vec.push("AM");
-        channel_vec.push(2u32);
+        channel_vec.push(2u8);
         time_vec.push("PM");
-        channel_vec.push(1u32);
+        channel_vec.push(1u8);
         time_vec.push("PM");
-        channel_vec.push(2u32);
+        channel_vec.push(2u8);
     }
     let time = Series::new("Time", time_vec);
     let channel = Series::new("Channel", channel_vec);

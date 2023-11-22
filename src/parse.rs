@@ -15,19 +15,23 @@ pub(crate) fn parse() -> ArgMatches {
         .get_matches()
 }
 
-pub(super) trait CooperParse {
+pub(super) trait CooperParse<'a> {
     fn get_input_dir(&self) -> &str;
 
     fn get_input_files(&self, dir: &str) -> Vec<PathBuf>;
 
     fn get_min_count(&self) -> Option<u8>;
 
-    fn get_output_file(&self, dir: &str) -> String;
+    fn get_output_agg_file(&self, dir: &str) -> String;
+
+    fn get_output_base(&self, dir: &str) -> String;
 
     fn get_output_pivot_file(&self, dir: &str) -> String;
+
+    fn get_output_raw_file(&self, dir: &str) -> String;
 }
 
-impl CooperParse for ArgMatches {
+impl<'a> CooperParse<'a> for ArgMatches {
     fn get_input_dir(&self) -> &str {
         match self.get_one::<String>("dir") {
             Some(dir) => dir,
@@ -52,21 +56,29 @@ impl CooperParse for ArgMatches {
         self.get_one::<u8>("min-count").copied()
     }
 
-    fn get_output_file(&self, dir: &str) -> String {
-        match self.get_one::<String>("output") {
-            Some(out) => out.to_owned(),
-            None => format!("{}{}", dir, ".csv"),
-        }
+    fn get_output_agg_file(&self, dir: &str) -> String {
+        let base_file = self.get_output_base(dir);
+        base_file.to_owned() + "_agg.csv"
     }
 
-    fn get_output_pivot_file(&self, dir: &str) -> String {
-        let base_file = match self.get_one::<String>("output") {
+    fn get_output_base(&self, dir: &str) -> String {
+        match self.get_one::<String>("output") {
             Some(out) => match out.split('.').next() {
                 Some(b) => b,
                 None => dir,
             },
             None => dir,
-        };
-        base_file.to_string() + "_pivot_.csv"
+        }
+        .to_owned()
+    }
+
+    fn get_output_pivot_file(&self, dir: &str) -> String {
+        let base_file = self.get_output_base(dir);
+        base_file.to_owned() + "_pivot.csv"
+    }
+
+    fn get_output_raw_file(&self, dir: &str) -> String {
+        let base_file = self.get_output_base(dir);
+        base_file.to_owned() + "_raw.csv"
     }
 }
