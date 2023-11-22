@@ -1,0 +1,18 @@
+[package]
+name = "cooper"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "*"
+itertools = "0.11.0"
+
+[dependencies.polars]
+version = "0.34.2"
+features = ["diagonal_concat", "dtype-u8", "lazy", "pivot"]
+
+[dependencies.time]
+version = "0.3.30"
+features = ["parsing"]

@@ -1,6 +1,9 @@
 use polars::prelude::pivot::pivot_stable;
 use polars::prelude::{ChunkCompare, DataFrame, DataFrameJoinOps};
 
+static COLUMNS: &[&str] = &["Common Name"];
+static INDEX: &[&str] = &["Date", "Time", "Channel"];
+static VALUES: &[&str] = &["ID Count"];
 pub(super) fn species_pivot(
     agg: &DataFrame,
     date_range: &DataFrame,
@@ -8,7 +11,7 @@ pub(super) fn species_pivot(
 ) -> DataFrame {
     let filtered_df = match min_count {
         Some(m) => {
-            let col = match agg.column("ID Count") {
+            let col = match agg.column(VALUES[0]) {
                 Ok(c) => c,
                 Err(e) => panic!("{}", e),
             };
@@ -23,23 +26,9 @@ pub(super) fn species_pivot(
         }
         None => agg.to_owned(),
     };
-    match pivot_stable(
-        &filtered_df,
-        ["ID Count"],
-        ["Date", "Time", "Channel"],
-        ["Common Name"],
-        true,
-        None,
-        None,
-    )
-    .and_then(|pivot| {
-        date_range.left_join(
-            &pivot,
-            ["Date", "Time", "Channel"],
-            ["Date", "Time", "Channel"],
-        )
-    })
-    .and_then(|df| df.sort(["Date", "Time", "Channel"], vec![false; 3], true))
+    match pivot_stable(&filtered_df, VALUES, INDEX, COLUMNS, true, None, None)
+        .and_then(|pivot| date_range.left_join(&pivot, INDEX, INDEX))
+        .and_then(|df| df.sort(INDEX, vec![false; 3], true))
     {
         Ok(p) => p,
         Err(e) => panic!("{}", e),

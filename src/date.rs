@@ -1,6 +1,11 @@
+use itertools::Itertools;
 use polars::prelude::{DataFrame, NamedFrom, Series};
 use std::path::PathBuf;
 use time::{format_description, Date};
+
+static CHANNELS: &[u8] = &[1, 2];
+static DATE_FORMAT: &str = "[year][month][day]";
+static TIMES: &[&str] = &["AM", "PM"];
 
 fn make_date_vec(min_date: Date, max_date: &Date, vec: &mut Vec<String>) {
     if min_date.le(max_date) {
@@ -8,9 +13,7 @@ fn make_date_vec(min_date: Date, max_date: &Date, vec: &mut Vec<String>) {
             Some(d) => d,
             None => panic!("Next date out of range."),
         };
-        for _ in 0..4 {
-            vec.push(min_date.to_string());
-        }
+        vec.push(min_date.to_string());
         if next_date.le(max_date) {
             make_date_vec(next_date, max_date, vec)
         }
@@ -29,7 +32,7 @@ pub(super) fn make_date_range(input_files: &[PathBuf]) -> DataFrame {
             })
         })
         .collect::<Vec<_>>();
-    let format = match format_description::parse("[year][month][day]") {
+    let format = match format_description::parse(DATE_FORMAT) {
         Ok(f) => f,
         Err(e) => panic!("{}", e),
     };
@@ -47,21 +50,24 @@ pub(super) fn make_date_range(input_files: &[PathBuf]) -> DataFrame {
         },
         None => panic!("Empty Date List"),
     };
-    let mut date_vec = Vec::new();
-    make_date_vec(min_date, &max_date, &mut date_vec);
+    let mut dates = Vec::new();
+    let date_len = 4 * dates.len();
+    make_date_vec(min_date, &max_date, &mut dates);
+    let mut date_vec = Vec::with_capacity(date_len);
+    let mut time_vec = Vec::with_capacity(date_len);
+    let mut channel_vec = Vec::with_capacity(date_len);
+    dates
+        .iter()
+        .cartesian_product(TIMES)
+        .cartesian_product(CHANNELS)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .for_each(|((d, &t), &c)| {
+            date_vec.push(d.to_owned());
+            time_vec.push(t);
+            channel_vec.push(c);
+        });
     let date = Series::new("Date", date_vec);
-    let mut time_vec = Vec::with_capacity(date.len());
-    let mut channel_vec = Vec::with_capacity(date.len());
-    for _ in 0..date.len() / 4 {
-        time_vec.push("AM");
-        channel_vec.push(1u8);
-        time_vec.push("AM");
-        channel_vec.push(2u8);
-        time_vec.push("PM");
-        channel_vec.push(1u8);
-        time_vec.push("PM");
-        channel_vec.push(2u8);
-    }
     let time = Series::new("Time", time_vec);
     let channel = Series::new("Channel", channel_vec);
     match DataFrame::new(vec![date, time, channel]) {
