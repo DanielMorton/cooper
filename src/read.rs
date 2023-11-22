@@ -37,6 +37,7 @@ pub(super) fn read_df(pb: &PathBuf) -> DataFrame {
     match df.select([
         "Date",
         "Time",
+        "Time of Day",
         "Channel",
         "Begin Time (s)",
         "End Time (s)",

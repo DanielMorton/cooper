@@ -79,11 +79,11 @@ impl FileMeta {
     }
 
     pub(super) fn get_date(&self) -> String {
-        format!("{}-{}-{}", &self.year, &self.month, &self.day)
+        format!("{:04}-{:02}-{:02}", &self.year, &self.month, &self.day)
     }
 
     pub(super) fn get_time(&self) -> String {
-        format!("{}:{}:{}", &self.hour, &self.minute, &self.second)
+        format!("{:02}:{:02}:{:02}", &self.hour, &self.minute, &self.second)
     }
 
     pub(super) fn get_time_of_day(&self) -> &str {

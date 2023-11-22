@@ -1,10 +1,10 @@
-use polars::prelude::pivot::pivot;
+use polars::prelude::pivot::pivot_stable;
 use polars::prelude::{ChunkCompare, DataFrame, DataFrameJoinOps};
 
-pub(super) fn species_pivot(df: &DataFrame, date_range: &DataFrame, min_count: Option<u8>) -> DataFrame {
+pub(super) fn species_pivot(agg: &DataFrame, date_range: &DataFrame, min_count: Option<u8>) -> DataFrame {
     let filtered_df = match min_count {
         Some(m) => {
-            let col = match df.column("ID Count") {
+            let col = match agg.column("ID Count") {
                 Ok(c) => c,
                 Err(e) => panic!("{}", e),
             };
@@ -12,14 +12,14 @@ pub(super) fn species_pivot(df: &DataFrame, date_range: &DataFrame, min_count: O
                 Ok(ma) => ma,
                 Err(e) => panic!("{}", e),
             };
-            match df.filter(&mask) {
+            match agg.filter(&mask) {
                 Ok(fdf) => fdf,
                 Err(e) => panic!("{}", e),
             }
         }
-        None => df.to_owned(),
+        None => agg.to_owned(),
     };
-    match pivot(
+    match pivot_stable(
         &filtered_df,
         ["ID Count"],
         ["Date", "Time", "Channel"],
