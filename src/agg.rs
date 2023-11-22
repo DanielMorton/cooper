@@ -1,7 +1,13 @@
 use polars::prelude::DataFrame;
 
 pub fn agg_df(df: &DataFrame) -> DataFrame {
-    match df.group_by(["Date", "Time of Day", "Channel", "Species Code", "Common Name"]) {
+    match df.group_by([
+        "Date",
+        "Time of Day",
+        "Channel",
+        "Species Code",
+        "Common Name",
+    ]) {
         Ok(g) => match g.select(["Confidence"]).count().and_then(|mut df| {
             df.rename("Confidence_count", "ID Count").unwrap();
             df.rename("Time of Day", "Time").unwrap();

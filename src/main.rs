@@ -1,19 +1,19 @@
 use crate::agg::agg_df;
+use crate::concat::concat;
 use crate::date::make_date_range;
 use crate::parse::CooperParse;
 use crate::pivot::species_pivot;
 use crate::read::read_df;
 use crate::write::write_csv;
-use crate::concat::concat;
 
 mod agg;
+mod concat;
 mod date;
 mod file_meta;
 mod parse;
 mod pivot;
 mod read;
 mod write;
-mod concat;
 
 fn main() {
     let matches = parse::parse();

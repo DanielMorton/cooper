@@ -1,7 +1,11 @@
 use polars::prelude::pivot::pivot_stable;
 use polars::prelude::{ChunkCompare, DataFrame, DataFrameJoinOps};
 
-pub(super) fn species_pivot(agg: &DataFrame, date_range: &DataFrame, min_count: Option<u8>) -> DataFrame {
+pub(super) fn species_pivot(
+    agg: &DataFrame,
+    date_range: &DataFrame,
+    min_count: Option<u8>,
+) -> DataFrame {
     let filtered_df = match min_count {
         Some(m) => {
             let col = match agg.column("ID Count") {
@@ -27,11 +31,16 @@ pub(super) fn species_pivot(agg: &DataFrame, date_range: &DataFrame, min_count: 
         true,
         None,
         None,
-    ).and_then(|pivot| date_range.left_join(
+    )
+    .and_then(|pivot| {
+        date_range.left_join(
             &pivot,
             ["Date", "Time", "Channel"],
             ["Date", "Time", "Channel"],
-        )).and_then(|df| df.sort(["Date", "Time", "Channel"], vec![false; 3], true)) {
+        )
+    })
+    .and_then(|df| df.sort(["Date", "Time", "Channel"], vec![false; 3], true))
+    {
         Ok(p) => p,
         Err(e) => panic!("{}", e),
     }
