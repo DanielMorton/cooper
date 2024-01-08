@@ -58,7 +58,7 @@ impl<'a> CooperParse<'a> for ArgMatches {
 
     fn get_output_agg_file(&self, dir: &str) -> String {
         let base_file = self.get_output_base(dir);
-        base_file.to_owned() + "_agg.csv"
+        base_file + "_agg.csv"
     }
 
     fn get_output_base(&self, dir: &str) -> String {
@@ -74,11 +74,11 @@ impl<'a> CooperParse<'a> for ArgMatches {
 
     fn get_output_pivot_file(&self, dir: &str) -> String {
         let base_file = self.get_output_base(dir);
-        base_file.to_owned() + "_pivot.csv"
+        base_file + "_pivot.csv"
     }
 
     fn get_output_raw_file(&self, dir: &str) -> String {
         let base_file = self.get_output_base(dir);
-        base_file.to_owned() + "_raw.csv"
+        base_file + "_raw.csv"
     }
 }

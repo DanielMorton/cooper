@@ -1,10 +1,9 @@
 use crate::file_meta::FileMeta;
-use polars::frame::DataFrame;
-use polars::prelude::{LazyCsvReader, LazyFileListReader, NamedFrom};
+use polars::prelude::{DataFrame, LazyCsvReader, LazyFileListReader, NamedFrom};
 use polars::series::Series;
 use std::path::PathBuf;
 
-pub fn load_file(pb: &PathBuf) -> DataFrame {
+pub(super) fn load_file(pb: &PathBuf) -> DataFrame {
     match LazyCsvReader::new(pb)
         .has_header(true)
         .with_separator(u8::try_from('\t').unwrap())
@@ -23,6 +22,8 @@ pub(super) fn read_df(pb: &PathBuf) -> DataFrame {
     let mut df = load_file(pb);
     let file_meta = FileMeta::new(pb);
     let size = df.height();
+    df.with_column(Series::new("Season", vec![file_meta.get_season(); size]))
+        .unwrap();
     df.with_column(Series::new("Date", vec![file_meta.get_date(); size]))
         .unwrap();
     df.with_column(Series::new("Time", vec![file_meta.get_time(); size]))
@@ -35,6 +36,7 @@ pub(super) fn read_df(pb: &PathBuf) -> DataFrame {
     df.with_column(Series::new("Channel", vec![file_meta.channel; size]))
         .unwrap();
     match df.select([
+        "Season",
         "Date",
         "Time",
         "Time of Day",

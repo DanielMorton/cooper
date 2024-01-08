@@ -2,7 +2,7 @@ use polars::prelude::pivot::pivot_stable;
 use polars::prelude::{ChunkCompare, DataFrame, DataFrameJoinOps};
 
 static COLUMNS: &[&str] = &["Common Name"];
-static INDEX: &[&str] = &["Date", "Time", "Channel"];
+static INDEX: &[&str] = &["Date", "Time of Day", "Channel"];
 static VALUES: &[&str] = &["ID Count"];
 pub(super) fn species_pivot(
     agg: &DataFrame,

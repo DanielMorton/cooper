@@ -1,9 +1,12 @@
+use std::time::Instant;
+use polars::prelude::{DataFrameJoinOps, JoinArgs, JoinType};
 use crate::agg::agg_df;
 use crate::concat::concat;
 use crate::date::make_date_range;
 use crate::parse::CooperParse;
 use crate::pivot::species_pivot;
 use crate::read::read_df;
+use crate::species::load_species;
 use crate::write::write_csv;
 
 mod agg;
@@ -14,6 +17,14 @@ mod parse;
 mod pivot;
 mod read;
 mod write;
+mod species;
+
+fn print_hms(start: &Instant) {
+    let millis = start.elapsed().as_millis();
+    let seconds = millis / 1000;
+    let (hour, minute, second) = (seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+    println!("{:02}:{:02}:{:02}.{}", hour, minute, second, millis % 1000)
+}
 
 fn main() {
     let matches = parse::parse();
@@ -31,12 +42,25 @@ fn main() {
         .filter(|df| df.height() > 0)
         .collect::<Vec<_>>();
 
-    let mut raw = concat(&raw_list);
+    let species = load_species();
+
+    let sr = Instant::now();
+    let mut raw = match concat(&raw_list)
+        .join(&species,  ["Common Name"], ["Common Name"],
+              JoinArgs::new(JoinType::Left)) {
+        Ok(df) => df,
+        Err(e) => panic!("{}", e)
+    };
+    println!("Concat time:");
+    print_hms(&sr);
     write_csv(&mut raw, &raw_output);
 
     let mut agg = agg_df(&raw);
     write_csv(&mut agg, &agg_output);
 
+    let sp = Instant::now();
     let mut pivot_df = species_pivot(&agg, &date_range, min_count);
-    write_csv(&mut pivot_df, &pivot_output)
+    write_csv(&mut pivot_df, &pivot_output);
+    println!("Pivot time:");
+    print_hms(&sp);
 }

@@ -68,7 +68,7 @@ pub(super) fn make_date_range(input_files: &[PathBuf]) -> DataFrame {
             channel_vec.push(c);
         });
     let date = Series::new("Date", date_vec);
-    let time = Series::new("Time", time_vec);
+    let time = Series::new("Time of Day", time_vec);
     let channel = Series::new("Channel", channel_vec);
     match DataFrame::new(vec![date, time, channel]) {
         Ok(d) => d,
