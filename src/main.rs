@@ -36,6 +36,7 @@ fn main() {
     let min_count = matches.get_min_count();
     let date_range = make_date_range(&input_files);
 
+    let sr = Instant::now();
     let raw_list = input_files
         .iter()
         .map(read_df)
@@ -44,7 +45,6 @@ fn main() {
 
     let species = load_species();
 
-    let sr = Instant::now();
     let mut raw = match concat(&raw_list)
         .join(&species,  ["Common Name"], ["Common Name"],
               JoinArgs::new(JoinType::Left)) {

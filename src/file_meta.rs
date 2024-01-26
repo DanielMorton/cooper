@@ -55,10 +55,7 @@ impl FileMeta {
             Ok(m) => m,
             Err(e) => panic!("No minute in file {}.\n{:?}", &file_name, e),
         };
-        let second = match time[4..6].parse::<u8>() {
-            Ok(s) => s,
-            Err(_) => 0
-        };
+        let second = time[4..6].parse::<u8>().unwrap_or(0);
 
         let channel = match file_split.next_back() {
             Some(c) => match c.parse::<u8>() {
