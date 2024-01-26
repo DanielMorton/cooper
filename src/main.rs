@@ -36,7 +36,7 @@ fn main() {
     let min_count = matches.get_min_count();
     let date_range = make_date_range(&input_files);
 
-    let sr = Instant::now();
+    let s = Instant::now();
     let raw_list = input_files
         .iter()
         .map(read_df)
@@ -59,5 +59,5 @@ fn main() {
     let mut pivot_df = species_pivot(&agg, &date_range, min_count);
     write_csv(&mut pivot_df, &pivot_output);
     println!("Run time:");
-    print_hms(&sr);
+    print_hms(&s);
 }
