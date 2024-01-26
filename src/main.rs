@@ -51,16 +51,13 @@ fn main() {
         Ok(df) => df,
         Err(e) => panic!("{}", e)
     };
-    println!("Concat time:");
-    print_hms(&sr);
     write_csv(&mut raw, &raw_output);
 
     let mut agg = agg_df(&raw);
     write_csv(&mut agg, &agg_output);
 
-    let sp = Instant::now();
     let mut pivot_df = species_pivot(&agg, &date_range, min_count);
     write_csv(&mut pivot_df, &pivot_output);
-    println!("Pivot time:");
-    print_hms(&sp);
+    println!("Run time:");
+    print_hms(&sr);
 }
