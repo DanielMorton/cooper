@@ -13,15 +13,15 @@ pub(super) fn species_pivot(
         Some(m) => {
             let col = match agg.column(VALUES[0]) {
                 Ok(c) => c,
-                Err(e) => panic!("{}", e),
+                Err(e) => panic!("{:?}", e),
             };
             let mask = match col.gt_eq(m) {
                 Ok(ma) => ma,
-                Err(e) => panic!("{}", e),
+                Err(e) => panic!("{:?}", e),
             };
             match agg.filter(&mask) {
                 Ok(fdf) => fdf,
-                Err(e) => panic!("{}", e),
+                Err(e) => panic!("{:?}", e),
             }
         }
         None => agg.to_owned(),
@@ -31,6 +31,6 @@ pub(super) fn species_pivot(
         .and_then(|df| df.sort(INDEX, vec![false; 3], true))
     {
         Ok(p) => p,
-        Err(e) => panic!("{}", e),
+        Err(e) => panic!("{:?}", e),
     }
 }

@@ -5,7 +5,7 @@ use crate::concat::concat;
 use crate::date::make_date_range;
 use crate::parse::CooperParse;
 use crate::pivot::species_pivot;
-use crate::read::read_df;
+use crate::read::{filter_df, read_df};
 use crate::species::load_species;
 use crate::write::write_csv;
 
@@ -34,6 +34,7 @@ fn main() {
     let agg_output = matches.get_output_agg_file(input_dir);
     let pivot_output = matches.get_output_pivot_file(input_dir);
     let min_count = matches.get_min_count();
+    let raw_filter = matches.get_raw_filter();
     let date_range = make_date_range(&input_files);
 
     let s = Instant::now();
@@ -41,6 +42,7 @@ fn main() {
         .iter()
         .map(read_df)
         .filter(|df| df.height() > 0)
+        .map(|df| filter_df(df, raw_filter))
         .collect::<Vec<_>>();
 
     let species = load_species();
@@ -49,7 +51,7 @@ fn main() {
         .join(&species,  ["Common Name"], ["Common Name"],
               JoinArgs::new(JoinType::Left)) {
         Ok(df) => df,
-        Err(e) => panic!("{}", e)
+        Err(e) => panic!("{:?}", e)
     };
     write_csv(&mut raw, &raw_output);
 

@@ -10,7 +10,13 @@ pub(crate) fn parse() -> ArgMatches {
             Arg::new("min-count")
                 .long("min-count")
                 .required(false)
-                .value_parser(value_parser!(u8)),
+                .value_parser(value_parser!(u8))
+        )
+        .arg(
+            Arg::new("raw-filter")
+                .long("raw-filter")
+                .required(false)
+                .value_parser(value_parser!(f32))
         )
         .get_matches()
 }
@@ -29,6 +35,8 @@ pub(super) trait CooperParse<'a> {
     fn get_output_pivot_file(&self, dir: &str) -> String;
 
     fn get_output_raw_file(&self, dir: &str) -> String;
+
+    fn get_raw_filter(&self) -> Option<f32>;
 }
 
 impl<'a> CooperParse<'a> for ArgMatches {
@@ -58,7 +66,8 @@ impl<'a> CooperParse<'a> for ArgMatches {
 
     fn get_output_agg_file(&self, dir: &str) -> String {
         let base_file = self.get_output_base(dir);
-        base_file + "_agg.csv"
+        let filter = self.get_raw_filter().map(|f| f.to_string());
+        format!("{}_agg{}.csv", base_file, filter.unwrap_or("".to_owned()))
     }
 
     fn get_output_base(&self, dir: &str) -> String {
@@ -79,6 +88,11 @@ impl<'a> CooperParse<'a> for ArgMatches {
 
     fn get_output_raw_file(&self, dir: &str) -> String {
         let base_file = self.get_output_base(dir);
-        base_file + "_raw.csv"
+        let filter = self.get_raw_filter().map(|f| f.to_string());
+        format!("{}_raw{}.csv", base_file, filter.unwrap_or("".to_owned()))
+    }
+
+    fn get_raw_filter(&self) -> Option<f32> {
+        self.get_one::<f32>("raw-filter").copied()
     }
 }
