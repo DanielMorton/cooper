@@ -3,10 +3,10 @@ use polars::prelude::{ChunkCompare, DataFrame, LazyCsvReader, LazyFileListReader
 use polars::series::Series;
 use std::path::PathBuf;
 
-pub(super) fn load_file(pb: &PathBuf) -> DataFrame {
+pub(super) fn load_file(pb: &PathBuf, sep: char) -> DataFrame {
     match LazyCsvReader::new(pb)
         .has_header(true)
-        .with_separator(u8::try_from('\t').unwrap())
+        .with_separator(u8::try_from(sep).unwrap())
         .finish()
         .map(|f| f.collect())
     {
@@ -18,28 +18,32 @@ pub(super) fn load_file(pb: &PathBuf) -> DataFrame {
     }
 }
 
+fn load_data(pb: &PathBuf) -> DataFrame {
+    load_file(pb, '\t')
+}
+
 pub(super) fn filter_df(df: DataFrame, raw_filter: Option<f32>) -> DataFrame {
     match raw_filter {
         Some(f) => {
             let col = match df.column("Confidence") {
                 Ok(c) => c,
-                Err(e) => panic!("{:?}", e)
+                Err(e) => panic!("{:?}", e),
             };
             let mask = match col.gt_eq(f) {
                 Ok(m) => m,
-                Err(e) => panic!("{:?}", e)
+                Err(e) => panic!("{:?}", e),
             };
             match df.filter(&mask) {
                 Ok(fdf) => fdf,
                 Err(e) => panic!("{:?}", e),
             }
-        },
-        None => df
+        }
+        None => df,
     }
 }
 
 pub(super) fn read_df(pb: &PathBuf) -> DataFrame {
-    let mut df = load_file(pb);
+    let mut df = load_data(pb);
     let file_meta = FileMeta::new(pb);
     let size = df.height();
     df.with_column(Series::new("Season", vec![file_meta.get_season(); size]))

@@ -80,21 +80,25 @@ impl FileMeta {
     }
 
     pub(super) fn get_season(&self) -> &str {
-        if self.month < 3 ||
-            (self.month == 3 && self.day <= 20) ||
-            (self.month == 12 && self.day >= 21){
+        if self.month < 3
+            || (self.month == 3 && self.day <= 20)
+            || (self.month == 12 && self.day >= 21)
+        {
             "Winter"
-        } else if (self.month == 3 && self.day >= 21) ||
-            (self.month >= 4 && self.month <= 5) ||
-            (self.month == 6 && self.day <= 20) {
+        } else if (self.month == 3 && self.day >= 21)
+            || (self.month >= 4 && self.month <= 5)
+            || (self.month == 6 && self.day <= 20)
+        {
             "Spring"
-        } else if (self.month == 6 && self.day >= 21) ||
-            (self.month >= 7 && self.month <= 8) ||
-            (self.month == 9 && self.day <= 20) {
+        } else if (self.month == 6 && self.day >= 21)
+            || (self.month >= 7 && self.month <= 8)
+            || (self.month == 9 && self.day <= 20)
+        {
             "Summer"
-        } else if (self.month == 9 && self.day >= 21) ||
-            (self.month >= 10 && self.month <= 11) ||
-            (self.month == 12 && self.month <= 20) {
+        } else if (self.month == 9 && self.day >= 21)
+            || (self.month >= 10 && self.month <= 11)
+            || (self.month == 12 && self.month <= 20)
+        {
             "Fall"
         } else {
             panic!("Invalid Date {}-{}-{}", &self.year, &self.month, &self.day)

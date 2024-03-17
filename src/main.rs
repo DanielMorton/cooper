@@ -1,23 +1,25 @@
-use std::time::Instant;
-use polars::prelude::{DataFrameJoinOps, JoinArgs, JoinType};
 use crate::agg::agg_df;
 use crate::concat::concat;
 use crate::date::make_date_range;
+use crate::location::{join_location, load_location};
 use crate::parse::CooperParse;
 use crate::pivot::species_pivot;
 use crate::read::{filter_df, read_df};
 use crate::species::load_species;
 use crate::write::write_csv;
+use polars::prelude::{DataFrameJoinOps, JoinArgs, JoinType};
+use std::time::Instant;
 
 mod agg;
 mod concat;
 mod date;
 mod file_meta;
+mod location;
 mod parse;
 mod pivot;
 mod read;
-mod write;
 mod species;
+mod write;
 
 fn print_hms(start: &Instant) {
     let millis = start.elapsed().as_millis();
@@ -29,12 +31,13 @@ fn print_hms(start: &Instant) {
 fn main() {
     let matches = parse::parse();
     let input_dir = matches.get_input_dir();
-    let input_files = matches.get_input_files(input_dir);
-    let raw_output = matches.get_output_raw_file(input_dir);
     let agg_output = matches.get_output_agg_file(input_dir);
+    let raw_output = matches.get_output_raw_file(input_dir);
     let pivot_output = matches.get_output_pivot_file(input_dir);
+    let input_files = matches.get_input_files(input_dir);
     let min_count = matches.get_min_count();
     let raw_filter = matches.get_raw_filter();
+    let location_file = matches.get_location();
     let date_range = make_date_range(&input_files);
 
     let s = Instant::now();
@@ -46,16 +49,24 @@ fn main() {
         .collect::<Vec<_>>();
 
     let species = load_species();
+    let location = load_location(&location_file);
 
     let mut raw = match concat(&raw_list)
-        .join(&species,  ["Common Name"], ["Common Name"],
-              JoinArgs::new(JoinType::Left)) {
+        .join(
+            &species,
+            ["Common Name"],
+            ["Common Name"],
+            JoinArgs::new(JoinType::Left),
+        )
+        .map(|df| join_location(df, &location))
+    {
         Ok(df) => df,
-        Err(e) => panic!("{:?}", e)
+        Err(e) => panic!("{:?}", e),
     };
     write_csv(&mut raw, &raw_output);
 
     let mut agg = agg_df(&raw);
+    agg = join_location(agg, &location);
     write_csv(&mut agg, &agg_output);
 
     let mut pivot_df = species_pivot(&agg, &date_range, min_count);

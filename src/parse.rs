@@ -10,13 +10,19 @@ pub(crate) fn parse() -> ArgMatches {
             Arg::new("min-count")
                 .long("min-count")
                 .required(false)
-                .value_parser(value_parser!(u8))
+                .value_parser(value_parser!(u8)),
         )
         .arg(
             Arg::new("raw-filter")
                 .long("raw-filter")
                 .required(false)
-                .value_parser(value_parser!(f32))
+                .value_parser(value_parser!(f32)),
+        )
+        .arg(
+            Arg::new("location")
+                .long("location")
+                .required(false)
+                .value_parser(value_parser!(String)),
         )
         .get_matches()
 }
@@ -25,6 +31,8 @@ pub(super) trait CooperParse<'a> {
     fn get_input_dir(&self) -> &str;
 
     fn get_input_files(&self, dir: &str) -> Vec<PathBuf>;
+
+    fn get_location(&self) -> Option<PathBuf>;
 
     fn get_min_count(&self) -> Option<u8>;
 
@@ -58,6 +66,14 @@ impl<'a> CooperParse<'a> for ArgMatches {
         .filter(|f| f.extension().is_some())
         .filter(|f| f.extension().unwrap().to_str().unwrap() == "txt")
         .collect::<Vec<_>>()
+    }
+
+    fn get_location(&self) -> Option<PathBuf> {
+        self.get_one::<String>("location").map(|f| {
+            let mut pb = PathBuf::new();
+            pb.push(f);
+            pb
+        })
     }
 
     fn get_min_count(&self) -> Option<u8> {
