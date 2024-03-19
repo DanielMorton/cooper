@@ -1,7 +1,7 @@
 use crate::agg::agg_df;
 use crate::concat::concat;
 use crate::date::make_date_range;
-use crate::location::{join_location, load_location};
+use crate::location::{add_location, join_location, load_location};
 use crate::parse::CooperParse;
 use crate::pivot::species_pivot;
 use crate::read::{filter_df, read_df};
@@ -38,6 +38,7 @@ fn main() {
     let min_count = matches.get_min_count();
     let raw_filter = matches.get_raw_filter();
     let location_file = matches.get_location();
+    let location_code = matches.get_fixed_location();
     let date_range = make_date_range(&input_files);
 
     let s = Instant::now();
@@ -51,14 +52,15 @@ fn main() {
     let species = load_species();
     let location = load_location(&location_file);
 
-    let mut raw = match concat(&raw_list)
-        .join(
+    let mut raw = concat(&raw_list);
+    raw = join_location(raw, &location);
+    raw = add_location(raw, location_code);
+    raw = match raw.join(
             &species,
             ["Common Name"],
             ["Common Name"],
             JoinArgs::new(JoinType::Left),
         )
-        .map(|df| join_location(df, &location))
     {
         Ok(df) => df,
         Err(e) => panic!("{:?}", e),
@@ -67,6 +69,7 @@ fn main() {
 
     let mut agg = agg_df(&raw);
     agg = join_location(agg, &location);
+    agg = add_location(agg, location_code);
     write_csv(&mut agg, &agg_output);
 
     let mut pivot_df = species_pivot(&agg, &date_range, min_count);

@@ -1,4 +1,4 @@
-use clap::{arg, value_parser, Arg, ArgMatches, Command};
+use clap::{arg, value_parser, Arg, ArgGroup, ArgMatches, Command};
 use std::fs;
 use std::path::PathBuf;
 
@@ -24,10 +24,29 @@ pub(crate) fn parse() -> ArgMatches {
                 .required(false)
                 .value_parser(value_parser!(String)),
         )
+        .arg(
+            Arg::new("fixed-location")
+                .long("fixed-location")
+                .required(false)
+                .value_parser(value_parser!(usize)),
+        )
+        .group(
+            ArgGroup::new("location-type")
+                .args(["location", "fixed-location"])
+                .required(false),
+        )
+        .arg(
+            Arg::new("year")
+                .long("year")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
         .get_matches()
 }
 
 pub(super) trait CooperParse<'a> {
+    fn get_fixed_location(&self) -> Option<usize>;
+
     fn get_input_dir(&self) -> &str;
 
     fn get_input_files(&self, dir: &str) -> Vec<PathBuf>;
@@ -48,6 +67,10 @@ pub(super) trait CooperParse<'a> {
 }
 
 impl<'a> CooperParse<'a> for ArgMatches {
+    fn get_fixed_location(&self) -> Option<usize> {
+        self.get_one::<usize>("fixed-location").copied()
+    }
+
     fn get_input_dir(&self) -> &str {
         match self.get_one::<String>("dir") {
             Some(dir) => dir,
