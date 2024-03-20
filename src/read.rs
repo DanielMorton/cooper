@@ -2,6 +2,7 @@ use crate::file_meta::FileMeta;
 use polars::prelude::{ChunkCompare, DataFrame, LazyCsvReader, LazyFileListReader, NamedFrom};
 use polars::series::Series;
 use std::path::PathBuf;
+use polars::export::ahash::HashSet;
 
 pub(super) fn load_file(pb: &PathBuf, sep: char) -> DataFrame {
     match LazyCsvReader::new(pb)
@@ -42,13 +43,21 @@ pub(super) fn filter_df(df: DataFrame, raw_filter: Option<f32>) -> DataFrame {
     }
 }
 
-pub(super) fn read_df(pb: &PathBuf) -> DataFrame {
+pub(super) fn read_df(pb: &PathBuf, years: &mut HashSet<i32>) -> DataFrame {
     let mut df = load_data(pb);
     let file_meta = FileMeta::new(pb);
     let size = df.height();
+    let date = file_meta.get_date();
+    let year = match date[..4].parse::<i32>() {
+        Ok(y) => y,
+        Err(e) => panic!("{:?}", e)
+    };
+    years.insert(year);
     df.with_column(Series::new("Season", vec![file_meta.get_season(); size]))
         .unwrap();
-    df.with_column(Series::new("Date", vec![file_meta.get_date(); size]))
+    df.with_column(Series::new("Year", vec![year; size]))
+        .unwrap();
+    df.with_column(Series::new("Date", vec![date; size]))
         .unwrap();
     df.with_column(Series::new("Time", vec![file_meta.get_time(); size]))
         .unwrap();
@@ -61,6 +70,7 @@ pub(super) fn read_df(pb: &PathBuf) -> DataFrame {
         .unwrap();
     match df.select([
         "Season",
+        "Year",
         "Date",
         "Time",
         "Time of Day",

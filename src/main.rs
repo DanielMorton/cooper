@@ -6,9 +6,10 @@ use crate::parse::CooperParse;
 use crate::pivot::species_pivot;
 use crate::read::{filter_df, read_df};
 use crate::species::load_species;
-use crate::write::write_csv;
+use crate::write::{write_by_year, write_csv};
 use polars::prelude::{DataFrameJoinOps, JoinArgs, JoinType};
 use std::time::Instant;
+use polars::export::ahash::{HashSet, HashSetExt};
 
 mod agg;
 mod concat;
@@ -30,6 +31,7 @@ fn print_hms(start: &Instant) {
 
 fn main() {
     let matches = parse::parse();
+    let by_year = matches.get_by_year();
     let input_dir = matches.get_input_dir();
     let agg_output = matches.get_output_agg_file(input_dir);
     let raw_output = matches.get_output_raw_file(input_dir);
@@ -42,9 +44,10 @@ fn main() {
     let date_range = make_date_range(&input_files);
 
     let s = Instant::now();
+    let mut years = HashSet::new();
     let raw_list = input_files
         .iter()
-        .map(read_df)
+        .map(|pb| read_df(pb, &mut years))
         .filter(|df| df.height() > 0)
         .map(|df| filter_df(df, raw_filter))
         .collect::<Vec<_>>();
@@ -65,7 +68,11 @@ fn main() {
         Ok(df) => df,
         Err(e) => panic!("{:?}", e),
     };
-    write_csv(&mut raw, &raw_output);
+    if by_year {
+        write_by_year(&raw, &raw_output, &years)
+    } else {
+        write_csv(&mut raw, &raw_output)
+    };
 
     let mut agg = agg_df(&raw);
     agg = join_location(agg, &location);

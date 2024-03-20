@@ -6,6 +6,7 @@ pub(crate) fn parse() -> ArgMatches {
     Command::new("cooper")
         .arg(arg!(--dir[DIR]))
         .arg(arg!(--output <OUTPUT>))
+        .arg(arg!(--year))
         .arg(
             Arg::new("min-count")
                 .long("min-count")
@@ -35,16 +36,11 @@ pub(crate) fn parse() -> ArgMatches {
                 .args(["location", "fixed-location"])
                 .required(false),
         )
-        .arg(
-            Arg::new("year")
-                .long("year")
-                .required(false)
-                .value_parser(value_parser!(bool)),
-        )
         .get_matches()
 }
 
 pub(super) trait CooperParse<'a> {
+    fn get_by_year(&self) -> bool;
     fn get_fixed_location(&self) -> Option<usize>;
 
     fn get_input_dir(&self) -> &str;
@@ -67,6 +63,11 @@ pub(super) trait CooperParse<'a> {
 }
 
 impl<'a> CooperParse<'a> for ArgMatches {
+
+    fn get_by_year(&self) -> bool {
+        self.get_flag("year")
+    }
+
     fn get_fixed_location(&self) -> Option<usize> {
         self.get_one::<usize>("fixed-location").copied()
     }
