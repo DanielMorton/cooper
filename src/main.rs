@@ -7,9 +7,9 @@ use crate::pivot::species_pivot;
 use crate::read::{filter_df, read_df};
 use crate::species::load_species;
 use crate::write::{write_by_year, write_csv};
+use polars::export::ahash::{HashSet, HashSetExt};
 use polars::prelude::{DataFrameJoinOps, JoinArgs, JoinType};
 use std::time::Instant;
-use polars::export::ahash::{HashSet, HashSetExt};
 
 mod agg;
 mod concat;
@@ -59,12 +59,11 @@ fn main() {
     raw = join_location(raw, &location);
     raw = add_location(raw, location_code);
     raw = match raw.join(
-            &species,
-            ["Common Name"],
-            ["Common Name"],
-            JoinArgs::new(JoinType::Left),
-        )
-    {
+        &species,
+        ["Common Name"],
+        ["Common Name"],
+        JoinArgs::new(JoinType::Left),
+    ) {
         Ok(df) => df,
         Err(e) => panic!("{:?}", e),
     };

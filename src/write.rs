@@ -1,6 +1,6 @@
+use polars::export::ahash::HashSet;
 use polars::prelude::{ChunkCompare, CsvWriter, DataFrame, SerWriter};
 use std::fs::File;
-use polars::export::ahash::HashSet;
 
 pub(super) fn write_csv(df: &mut DataFrame, file_name: &str) {
     let file = match File::create(file_name) {
@@ -14,8 +14,8 @@ pub(super) fn write_csv(df: &mut DataFrame, file_name: &str) {
 }
 
 pub(super) fn write_by_year(df: &DataFrame, file_name: &str, years: &HashSet<i32>) {
-    years.into_iter().for_each(|&y| {
-        let file_split = file_name.split("/").map(String::from).collect::<Vec<_>>();
+    years.iter().for_each(|&y| {
+        let file_split = file_name.split('/').map(String::from).collect::<Vec<_>>();
         let year_file = format!("{}/{}_{}", file_split[0], y, file_split[1]);
         let col = match df.column("Year") {
             Ok(c) => c,

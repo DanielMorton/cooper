@@ -16,7 +16,7 @@ pub(super) fn add_location(mut df: DataFrame, location_code: Option<usize>) -> D
                 .unwrap();
             let mut columns = df.get_column_names();
             let num_cols = columns.len();
-            columns = [&columns[num_cols-2..], &columns[..num_cols-2]].concat();
+            columns = [&columns[num_cols - 2..], &columns[..num_cols - 2]].concat();
             match df.select(columns) {
                 Ok(raw) => raw,
                 Err(e) => panic!("{:?}", e),
@@ -44,8 +44,8 @@ pub(super) fn join_location(raw: DataFrame, location_df: &Option<DataFrame>) -> 
             df.rename("Number", "Site Number").unwrap();
             let mut columns = df.get_column_names();
             let num_cols = columns.len();
-            columns = [&columns[num_cols-2..], &columns[..num_cols-2]].concat();
-            match df.select( columns ) {
+            columns = [&columns[num_cols - 2..], &columns[..num_cols - 2]].concat();
+            match df.select(columns) {
                 Ok(raw) => raw,
                 Err(e) => panic!("{:?}", e),
             }

@@ -63,7 +63,6 @@ pub(super) trait CooperParse<'a> {
 }
 
 impl<'a> CooperParse<'a> for ArgMatches {
-
     fn get_by_year(&self) -> bool {
         self.get_flag("year")
     }

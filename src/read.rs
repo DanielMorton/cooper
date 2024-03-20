@@ -1,8 +1,8 @@
 use crate::file_meta::FileMeta;
+use polars::export::ahash::HashSet;
 use polars::prelude::{ChunkCompare, DataFrame, LazyCsvReader, LazyFileListReader, NamedFrom};
 use polars::series::Series;
 use std::path::PathBuf;
-use polars::export::ahash::HashSet;
 
 pub(super) fn load_file(pb: &PathBuf, sep: char) -> DataFrame {
     match LazyCsvReader::new(pb)
@@ -50,7 +50,7 @@ pub(super) fn read_df(pb: &PathBuf, years: &mut HashSet<i32>) -> DataFrame {
     let date = file_meta.get_date();
     let year = match date[..4].parse::<i32>() {
         Ok(y) => y,
-        Err(e) => panic!("{:?}", e)
+        Err(e) => panic!("{:?}", e),
     };
     years.insert(year);
     df.with_column(Series::new("Season", vec![file_meta.get_season(); size]))
