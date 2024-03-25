@@ -9,9 +9,12 @@ pub(super) fn load_file(pb: &PathBuf, sep: char) -> DataFrame {
         .has_header(true)
         .with_separator(u8::try_from(sep).unwrap())
         .finish()
-        .map(|f| f.collect()).iter().flatten().collect::<Result<_,_>>()
+        .map(|f| f.collect())
     {
-        Ok(df) => df,
+        Ok(r) => match r {
+            Ok(df) => df,
+            Err(e) => panic!("Failed to load {:?}:\n {:?}", pb, e),
+        },
         Err(e) => panic!("Failed to load {:?}:\n {:?}", pb, e),
     }
 }
