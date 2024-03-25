@@ -13,6 +13,6 @@ pub(super) fn concat(df_list: &[DataFrame]) -> DataFrame {
             )
         }) {
         Ok(d) => d,
-        Err(e) => panic!("{}", e),
+        Err(e) => panic!("{:?}", e),
     }
 }
