@@ -9,12 +9,9 @@ pub(super) fn load_file(pb: &PathBuf, sep: char) -> DataFrame {
         .has_header(true)
         .with_separator(u8::try_from(sep).unwrap())
         .finish()
-        .map(|f| f.collect())
+        .map(|f| f.collect()).iter().flatten().collect::<Result<_,_>>()
     {
-        Ok(r) => match r {
-            Ok(df) => df,
-            Err(e) => panic!("Failed to load {:?}:\n {:?}", pb, e),
-        },
+        Ok(df) => df,
         Err(e) => panic!("Failed to load {:?}:\n {:?}", pb, e),
     }
 }
@@ -26,16 +23,10 @@ fn load_data(pb: &PathBuf) -> DataFrame {
 pub(super) fn filter_df(df: DataFrame, raw_filter: Option<f32>) -> DataFrame {
     match raw_filter {
         Some(f) => {
-            let col = match df.column("Confidence") {
+            match df.column("Confidence")
+                .and_then(|col| col.gt_eq(f))
+                .and_then(|mask| df.filter(&mask)) {
                 Ok(c) => c,
-                Err(e) => panic!("{:?}", e),
-            };
-            let mask = match col.gt_eq(f) {
-                Ok(m) => m,
-                Err(e) => panic!("{:?}", e),
-            };
-            match df.filter(&mask) {
-                Ok(fdf) => fdf,
                 Err(e) => panic!("{:?}", e),
             }
         }
